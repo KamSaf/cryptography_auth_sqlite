@@ -25,9 +25,10 @@ def generate_salt() -> str:
         salt: str => randomly generated 32 characters long salt
     """
     ASCII_CHARACTERS_BOUNDS = [33, 128]
+    SALT_DEFAULT_SIZE = 32
 
     salt = []
-    for _ in range(32):
+    for _ in range(SALT_DEFAULT_SIZE):
         x = random.randint(ASCII_CHARACTERS_BOUNDS[0], ASCII_CHARACTERS_BOUNDS[1])
         salt.append(chr(x))
     random.shuffle(salt)

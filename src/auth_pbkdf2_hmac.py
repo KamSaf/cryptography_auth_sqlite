@@ -14,7 +14,7 @@ class Auth:
 
     def authenticate(self, email: str, password_plain: str) -> bool:
         """
-            Function for authenticating user credentials
+            Function for authenticating user credentials using pbkdf2_hmac function and SHA256 algorithm
 
             Parameters:
             --------------------------------------------
@@ -41,7 +41,7 @@ class Auth:
 
     def save_user(self, email: str, password_plain: str, password_confirm: str) -> bool:
         """
-            Function saving user data to the database
+            Function saving user data to the database using pbkdf2_hmac function and SHA256 algorithm
 
             Parameters:
             -----------------------------------------
@@ -75,7 +75,7 @@ class Auth:
 
     def change_password(self, email: str, new_password_plain: str, confirm_new_password: str) -> bool:
         """
-            Function for changing user password in the SQLite database
+            Function for changing user password in the SQLite database using pbkdf2_hmac function and SHA256 algorithm
 
             Parameters:
             -----------------------------------------
