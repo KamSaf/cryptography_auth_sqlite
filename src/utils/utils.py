@@ -28,7 +28,7 @@ def generate_salt() -> str:
 
     salt = []
     for _ in range(32):
-        x = random.randint(	ASCII_CHARACTERS_BOUNDS[0], ASCII_CHARACTERS_BOUNDS[1])
+        x = random.randint(ASCII_CHARACTERS_BOUNDS[0], ASCII_CHARACTERS_BOUNDS[1])
         salt.append(chr(x))
     random.shuffle(salt)
     return ''.join(salt) 
@@ -64,7 +64,6 @@ def check_hash(password_hash: str, password_plain: str, salt: str) -> bool:
     h = hashlib.sha256()
     h.update((password_plain + salt).encode())
     return password_hash == h.hexdigest()
-
 
 
 if __name__ == "__main__":

@@ -2,3 +2,4 @@
 *.sqlite
 __pycache__
 .DS_Store
+setup.cfg
