@@ -53,7 +53,10 @@ class Auth:
             dk = pbkdf2_hmac(hash_name='sha256', password=password_plain.encode(), salt=salt, iterations=Auth.HASH_ITERATIONS)
             password_hash = dk.hex()
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO user VALUES (:email, :password_hash, :salt)", {'email': email, 'password_hash': password_hash, 'salt': salt})
+            cursor.execute(
+                "INSERT INTO user VALUES (:email, :password_hash, :salt)",
+                {'email': email, 'password_hash': password_hash, 'salt': salt}
+            )
             conn.commit()
             conn.close()
             return True
@@ -79,7 +82,10 @@ class Auth:
             salt = cursor.execute(f"SELECT salt FROM user WHERE email='{email}'").fetchone()[0]
             new_password_hash = hash_password(password_plain=new_password_plain, salt=salt)[0]
             print(new_password_hash)
-            cursor.execute('''UPDATE user SET password_hash = :password_hash WHERE email = :email''', {'password_hash': new_password_hash, 'email': email})
+            cursor.execute(
+                "UPDATE user SET password_hash = :password_hash WHERE email = :email",
+                {'password_hash': new_password_hash, 'email': email}
+            )
             conn.commit()
             conn.close()
             return True

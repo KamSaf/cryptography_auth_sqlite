@@ -47,7 +47,10 @@ class Auth:
             create_table(conn=conn)
             password_hash, salt = hash_password(password_plain=password_plain)
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO user VALUES (:email, :password_hash, :salt)", {'email': email, 'password_hash': password_hash, 'salt': salt})
+            cursor.execute(
+                "INSERT INTO user VALUES (:email, :password_hash, :salt)",
+                {'email': email, 'password_hash': password_hash, 'salt': salt}
+            )
             conn.commit()
             conn.close()
             return True
