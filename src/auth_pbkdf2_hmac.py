@@ -1,9 +1,12 @@
 import sqlite3
 from utils.utils import create_table, hash_password, check_hash
+from hashlib import pbkdf2_hmac
+from os import urandom
 
 
 class Auth:
     DEFAULT_DATABASE_PATH = "database.db"
+    HASH_ITERATIONS = 500000
 
     def __init__(self, database_path: str = DEFAULT_DATABASE_PATH):
         self.database_path = database_path
@@ -27,7 +30,7 @@ class Auth:
                 return check_hash(password_hash=user_data[0], password_plain=password_plain, salt=user_data[1])
             return False
         except Exception as e:
-            print(e)
+            print('ERROR: ' + str(e))
             return True
 
     def save_user(self, email: str, password_plain: str, password_confirm: str) -> bool:
@@ -45,14 +48,17 @@ class Auth:
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
-            password_hash, salt = hash_password(password_plain=password_plain)
+            salt = urandom(32)
+            print(salt)
+            dk = pbkdf2_hmac(hash_name='sha256', password=password_plain.encode(), salt=salt, iterations=Auth.HASH_ITERATIONS)
+            password_hash = dk.hex()
             cursor = conn.cursor()
             cursor.execute("INSERT INTO user VALUES (:email, :password_hash, :salt)", {'email': email, 'password_hash': password_hash, 'salt': salt})
             conn.commit()
             conn.close()
             return True
         except Exception as e:
-            print(e)
+            print('ERROR: ' + str(e))
             return False
 
     def change_password(self, email: str, new_password_plain: str, confirm_new_password: str) -> bool:
@@ -78,10 +84,11 @@ class Auth:
             conn.close()
             return True
         except Exception as e:
-            print(e)
+            print('ERROR: ' + str(e))
             return False
 
 
 if __name__ == "__main__":
     auth = Auth()
+    auth.save_user(email='user@domain.com', password_plain='password', password_confirm='password')
     pass
