@@ -35,17 +35,15 @@ def generate_salt() -> str:
     return ''.join(salt) 
 
 
-def hash_password(password_plain: str, salt: str = '') -> tuple[str, str]:
+def hash_password(password_plain: str) -> tuple[str, str]:
     """
-        Function hashing password using SHA256 algorithm with given or randomly generated 32 characters long salt
+        Function hashing password using SHA256 algorithm with randomly generated 32 characters long salt
 
         Parameters:
         ---------------------------------------
         password_plain: str => user plain text password to be hashed
-        salt: str (optional) => salt which is used to hash password (for checking hash)
     """
-    if not salt:
-        salt = generate_salt()
+    salt = generate_salt()
     h = hashlib.sha256()
     h.update((password_plain + salt).encode())
     password_hash = h.hexdigest()

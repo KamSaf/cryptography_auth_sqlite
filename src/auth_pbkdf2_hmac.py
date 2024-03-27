@@ -1,5 +1,5 @@
 import sqlite3
-from utils.utils import create_table, hash_password
+from utils.utils import create_table
 from hashlib import pbkdf2_hmac
 from os import urandom
 import binascii
@@ -54,6 +54,10 @@ class Auth:
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
+            cursor = conn.cursor()
+            users_with_given_email = cursor.execute(f"SELECT * FROM user WHERE email='{email}'").fetchall()
+            assert not users_with_given_email
+
             salt = binascii.hexlify(urandom(32))
             dk = pbkdf2_hmac(
                 hash_name='sha256',
@@ -62,7 +66,6 @@ class Auth:
                 iterations=Auth.HASH_ITERATIONS
             )
             password_hash = dk.hex()
-            cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO user VALUES (:email, :password_hash, :salt)",
                 {'email': email, 'password_hash': password_hash, 'salt': salt.decode()}
@@ -73,27 +76,33 @@ class Auth:
         except Exception as e:
             raise e
 
-    def change_password(self, email: str, new_password_plain: str, confirm_new_password: str) -> bool:
+    def change_password(self, email: str, new_password_plain: str, new_password_confirm: str) -> bool:
         """
-            Function for changing user password in the SQLite database using pbkdf2_hmac function and SHA256 algorithm
+            Function for changing user password in the SQLite database and generating new salt
+            using pbkdf2_hmac function and SHA256 algorithm
 
             Parameters:
             -----------------------------------------
             email: str => user email
             new_password_plain: str => new password to be saved to the database
-            confirm_new_password: str => new password confirmation
+            new_password_confirm: str => new password confirmation
         """
-        assert new_password_plain == confirm_new_password
+        assert new_password_plain == new_password_confirm
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
             cursor = conn.cursor()
-            salt = cursor.execute(f"SELECT salt FROM user WHERE email='{email}'").fetchone()[0]
-            new_password_hash = hash_password(password_plain=new_password_plain, salt=salt)[0]
-            print(new_password_hash)
+            new_salt = binascii.hexlify(urandom(32))
+            dk = pbkdf2_hmac(
+                hash_name='sha256',
+                password=new_password_plain.encode(),
+                salt=new_salt,
+                iterations=Auth.HASH_ITERATIONS
+            )
+            new_password_hash = dk.hex()
             cursor.execute(
-                "UPDATE user SET password_hash = :password_hash WHERE email = :email",
-                {'password_hash': new_password_hash, 'email': email}
+                "UPDATE user SET password_hash = :new_password_hash, salt = :new_salt WHERE email = :email",
+                {'new_password_hash': new_password_hash, 'new_salt': new_salt, 'email': email}
             )
             conn.commit()
             conn.close()
@@ -103,7 +112,4 @@ class Auth:
 
 
 if __name__ == "__main__":
-    auth = Auth()
-    auth.save_user(email='user@domain.com', password_plain='password', password_confirm='password')
-    print(auth.authenticate(email='user@domain.com', password_plain='password'))
     pass
