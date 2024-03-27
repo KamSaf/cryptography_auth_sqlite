@@ -23,12 +23,11 @@ class Auth:
             cursor = conn.cursor()
             user_data = cursor.execute(f"SELECT password_hash, salt FROM user WHERE email='{email}'").fetchone()
             conn.close()
-            if user_data and len(user_data) == 1:
+            if user_data:
                 return check_hash(password_hash=user_data[0], password_plain=password_plain, salt=user_data[1])
             return False
         except Exception as e:
-            print(e)
-            return True
+            raise e
 
     def save_user(self, email: str, password_plain: str, password_confirm: str) -> bool:
         """
@@ -55,8 +54,7 @@ class Auth:
             conn.close()
             return True
         except Exception as e:
-            print(e)
-            return False
+            raise e
 
     def change_password(self, email: str, new_password_plain: str, confirm_new_password: str) -> bool:
         """
@@ -84,10 +82,8 @@ class Auth:
             conn.close()
             return True
         except Exception as e:
-            print(e)
-            return False
+            raise e
 
 
 if __name__ == "__main__":
-    auth = Auth()
     pass

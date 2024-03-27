@@ -1,7 +1,8 @@
 import sqlite3
-from utils.utils import create_table, hash_password, check_hash
+from utils.utils import create_table, hash_password
 from hashlib import pbkdf2_hmac
 from os import urandom
+import binascii
 
 
 class Auth:
@@ -26,12 +27,17 @@ class Auth:
             cursor = conn.cursor()
             user_data = cursor.execute(f"SELECT password_hash, salt FROM user WHERE email='{email}'").fetchone()
             conn.close()
-            if user_data and len(user_data) == 1:
-                return check_hash(password_hash=user_data[0], password_plain=password_plain, salt=user_data[1])
+            dk = pbkdf2_hmac(
+                hash_name='sha256',
+                password=password_plain.encode(),
+                salt=user_data[1].encode(),
+                iterations=Auth.HASH_ITERATIONS
+            )
+            if user_data:
+                return user_data[0] == dk.hex()
             return False
         except Exception as e:
-            print('ERROR: ' + str(e))
-            return True
+            raise e
 
     def save_user(self, email: str, password_plain: str, password_confirm: str) -> bool:
         """
@@ -48,21 +54,24 @@ class Auth:
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
-            salt = urandom(32)
-            print(salt)
-            dk = pbkdf2_hmac(hash_name='sha256', password=password_plain.encode(), salt=salt, iterations=Auth.HASH_ITERATIONS)
+            salt = binascii.hexlify(urandom(32))
+            dk = pbkdf2_hmac(
+                hash_name='sha256',
+                password=password_plain.encode(),
+                salt=salt,
+                iterations=Auth.HASH_ITERATIONS
+            )
             password_hash = dk.hex()
             cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO user VALUES (:email, :password_hash, :salt)",
-                {'email': email, 'password_hash': password_hash, 'salt': salt}
+                {'email': email, 'password_hash': password_hash, 'salt': salt.decode()}
             )
             conn.commit()
             conn.close()
             return True
         except Exception as e:
-            print('ERROR: ' + str(e))
-            return False
+            raise e
 
     def change_password(self, email: str, new_password_plain: str, confirm_new_password: str) -> bool:
         """
@@ -90,11 +99,11 @@ class Auth:
             conn.close()
             return True
         except Exception as e:
-            print('ERROR: ' + str(e))
-            return False
+            raise e
 
 
 if __name__ == "__main__":
     auth = Auth()
     auth.save_user(email='user@domain.com', password_plain='password', password_confirm='password')
+    print(auth.authenticate(email='user@domain.com', password_plain='password'))
     pass
