@@ -25,6 +25,7 @@ class Auth:
             user_data = cursor.execute(f"SELECT password_hash, salt FROM user WHERE email='{email}'").fetchone()
             conn.close()
             if user_data:
+                print('user data: ' + str(user_data))
                 return check_hash(password_hash=user_data[0], password_plain=password_plain, salt=user_data[1])
             return False
         except Exception as e:
