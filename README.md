@@ -20,12 +20,17 @@ Run command for installing requirements when in ```src/``` directory
 
 ## Functionalities
 
-- work in progress
+- function for saving user to database,
+- function for authenticating user,
+- function for changing user password,
 
+- function for saving user to database using pbkdf2_hmac,
+- function for authenticating user using pbkdf2_hmac,
+- function for changing user password using pbkdf2_hmac,
 
 ## Used packages
 
-- work in progress
+- pytest
 
 
 ## To run unit tests
