@@ -87,6 +87,4 @@ class Auth:
 
 
 if __name__ == "__main__":
-    auth = Auth()
-    auth.save_user(email='user@domain.com', password_plain='password', password_confirm='password')
     pass

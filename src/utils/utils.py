@@ -24,7 +24,7 @@ def generate_salt() -> str:
         --------------------------------------
         salt: str => randomly generated 32 characters long salt
     """
-    ASCII_CHARACTERS_BOUNDS = [33, 128]
+    ASCII_CHARACTERS_BOUNDS = [33, 127]
     SALT_DEFAULT_SIZE = 32
 
     salt = []
