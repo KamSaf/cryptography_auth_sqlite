@@ -17,6 +17,7 @@ class Auth:
             email: str => user email
             password_plain :str => user password
         """
+        assert type(email) is str and type(password_plain) is str
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
@@ -40,6 +41,7 @@ class Auth:
             password_confirm: str => user password confirmation
 
         """
+        assert type(email) is str and type(password_plain) is str and type(password_confirm) is str
         assert password_confirm == password_plain
         try:
             conn = sqlite3.connect(self.database_path)
@@ -69,6 +71,7 @@ class Auth:
             new_password_plain: str => new password to be saved to the database
             new_password_confirm: str => new password confirmation
         """
+        assert type(email) is str and type(new_password_plain) is str and type(new_password_confirm) is str
         assert new_password_plain == new_password_confirm
         try:
             conn = sqlite3.connect(self.database_path)
