@@ -1,5 +1,6 @@
 import sqlite3
 from utils.utils import create_table, hash_password, check_hash
+from utils.exception_types import InvalidDataType, PasswordConfirmationFailed, PasswordTooLong, EmailTooLong
 
 
 class Auth:
@@ -19,11 +20,11 @@ class Auth:
             password_plain :str => user password (max. 200 characters)
         """
         if type(email) is not str or type(password_plain) is not str:
-            raise Exception("Invalid data type")
+            raise InvalidDataType
         if len(email) > Auth.MAX_LENGTH:
-            raise Exception("Email is too long")
+            raise EmailTooLong
         if len(password_plain) > Auth.MAX_LENGTH:
-            raise Exception("Password is too long")
+            raise PasswordTooLong
 
         try:
             conn = sqlite3.connect(self.database_path)
@@ -49,13 +50,13 @@ class Auth:
 
         """
         if type(email) is not str or type(password_plain) is not str or type(password_confirm) is not str:
-            raise Exception("Invalid data type")
+            raise InvalidDataType
         if len(password_plain) > Auth.MAX_LENGTH:
-            raise Exception("Password is too long")
+            raise PasswordTooLong
         if len(email) > Auth.MAX_LENGTH:
-            raise Exception("Email is too long")
+            raise EmailTooLong
         if password_confirm != password_plain:
-            raise Exception("Password and password confirmation must be the same")
+            raise PasswordConfirmationFailed
 
         try:
             conn = sqlite3.connect(self.database_path)
@@ -86,11 +87,11 @@ class Auth:
             new_password_confirm: str => new password confirmation
         """
         if type(email) is not str or type(new_password_plain) is not str or type(new_password_confirm) is not str:
-            raise Exception('Invalid data type')
+            raise InvalidDataType
         if len(new_password_plain) > 200:
-            raise Exception('Password is too long')
+            raise PasswordTooLong
         if new_password_plain != new_password_confirm:
-            raise Exception("Password and password confirmation must be the same")
+            raise PasswordConfirmationFailed
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)

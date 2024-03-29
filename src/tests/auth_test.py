@@ -25,7 +25,7 @@ class TestAuth:
         cursor.execute("DELETE FROM user WHERE email=:email", {'email': TEST_EMAIL})
         connection.close()
         assert db_data
-        assert len(db_data) == 3 # SAVE USER ALE ZŁY ADRES ALBO HASŁO
+        assert len(db_data) == 3
 
     def test_authenticate(self, temporary_database_path):
         TEST_HASH = '5997339435395abe0bedb8bc1bd257847b0ad9cb691700a308cb01f8b89ea308'
