@@ -4,6 +4,7 @@ from utils.utils import create_table, hash_password, check_hash
 
 class Auth:
     DEFAULT_DATABASE_PATH = "database.db"
+    MAX_LENGTH = 200
 
     def __init__(self, database_path: str = DEFAULT_DATABASE_PATH):
         self.database_path = database_path
@@ -15,9 +16,15 @@ class Auth:
             Parameters:
             --------------------------------------------
             email: str => user email
-            password_plain :str => user password
+            password_plain :str => user password (max. 200 characters)
         """
-        assert type(email) is str and type(password_plain) is str
+        if type(email) is not str or type(password_plain) is not str:
+            raise Exception("Invalid data type")
+        if len(email) > Auth.MAX_LENGTH:
+            raise Exception("Email is too long")
+        if len(password_plain) > Auth.MAX_LENGTH:
+            raise Exception("Password is too long")
+
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
@@ -25,32 +32,39 @@ class Auth:
             user_data = cursor.execute(f"SELECT password_hash, salt FROM user WHERE email='{email}'").fetchone()
             conn.close()
             if user_data:
-                print('user data: ' + str(user_data))
                 return check_hash(password_hash=user_data[0], password_plain=password_plain, salt=user_data[1])
             return False
         except Exception as e:
             raise e
 
-    def save_user(self, email: str, password_plain: str, password_confirm: str) -> bool:
+    def save_user(self, email: str, password_plain: str, password_confirm: str) -> None:
         """
             Function saving user data to the database using SHA256 algorithm
 
             Parameters:
             -----------------------------------------
-            email: str => user email
-            password_plain :str => user password
+            email: str => user email (max. 200 characters)
+            password_plain :str => user password (max. 200 characters)
             password_confirm: str => user password confirmation
 
         """
-        assert type(email) is str and type(password_plain) is str and type(password_confirm) is str
-        assert password_confirm == password_plain
+        if type(email) is not str or type(password_plain) is not str or type(password_confirm) is not str:
+            raise Exception("Invalid data type")
+        if len(password_plain) > Auth.MAX_LENGTH:
+            raise Exception("Password is too long")
+        if len(email) > Auth.MAX_LENGTH:
+            raise Exception("Email is too long")
+        if password_confirm != password_plain:
+            raise Exception("Password and password confirmation must be the same")
+
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
             password_hash, salt = hash_password(password_plain=password_plain)
             cursor = conn.cursor()
             users_with_given_email = cursor.execute(f"SELECT * FROM user WHERE email='{email}'").fetchall()
-            assert not users_with_given_email
+            if users_with_given_email:
+                raise Exception("User with this email already exists")
 
             cursor.execute(
                 "INSERT INTO user VALUES (:email, :password_hash, :salt)",
@@ -58,22 +72,25 @@ class Auth:
             )
             conn.commit()
             conn.close()
-            return True
         except Exception as e:
             raise e
 
-    def change_password(self, email: str, new_password_plain: str, new_password_confirm: str) -> bool:
+    def change_password(self, email: str, new_password_plain: str, new_password_confirm: str) -> None:
         """
             Function for changing user password in the SQLite database and generating new salt using SHA256 algorithm.
 
             Parameters:
             -----------------------------------------
-            email: str => user email
-            new_password_plain: str => new password to be saved to the database
+            email: str => user email (max. 200 characters)
+            new_password_plain: str => new password to be saved to the database (max. 200 characters)
             new_password_confirm: str => new password confirmation
         """
-        assert type(email) is str and type(new_password_plain) is str and type(new_password_confirm) is str
-        assert new_password_plain == new_password_confirm
+        if type(email) is not str or type(new_password_plain) is not str or type(new_password_confirm) is not str:
+            raise Exception('Invalid data type')
+        if len(new_password_plain) > 200:
+            raise Exception('Password is too long')
+        if new_password_plain != new_password_confirm:
+            raise Exception("Password and password confirmation must be the same")
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
@@ -85,7 +102,6 @@ class Auth:
             )
             conn.commit()
             conn.close()
-            return True
         except Exception as e:
             raise e
 
