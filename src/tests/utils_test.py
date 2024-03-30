@@ -26,7 +26,6 @@ class TestUtils:
     def test_generate_salt(self):
         SALT_LENGTH = 32
         ASCII_CHARACTERS_BOUNDS = [33, 127]
-
         salt = generate_salt()
         assert len(salt) == SALT_LENGTH
         for char in salt:
@@ -47,5 +46,4 @@ class TestUtils:
         TEST_HASH = 'a449a179fe0d070c10f9af3fe84eac9befabbf669553c6813ccb93184714592c'
         TEST_SALT = 'Hh0kfc;UF5Z*ox%~JWu6&VOjw/2.J~Wt'
         TEST_PLAIN_TEXT = 'test_password'
-
         assert check_hash(password_hash=TEST_HASH, password_plain=TEST_PLAIN_TEXT, salt=TEST_SALT)

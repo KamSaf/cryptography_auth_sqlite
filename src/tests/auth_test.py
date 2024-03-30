@@ -35,6 +35,7 @@ class TestAuth:
         connection = sqlite3.connect(temporary_database_path)
         cursor = connection.cursor()
         cursor.execute("""CREATE TABLE IF NOT EXISTS user(email text, password_hash text, salt text) """)
+
         cursor.execute(
             "INSERT INTO user VALUES (:email, :password_hash, :salt)",
             {'email': TEST_EMAIL, 'password_hash': TEST_HASH, 'salt': TEST_SALT}

@@ -1,6 +1,6 @@
 import sqlite3
 from utils.utils import create_table, hash_password, check_hash
-from utils.exception_types import InvalidDataType, PasswordConfirmationFailed, PasswordTooLong, EmailTooLong
+import utils.exception_types as AuthExceptions
 
 
 class Auth:
@@ -20,11 +20,11 @@ class Auth:
             password_plain :str => user password (max. 200 characters)
         """
         if type(email) is not str or type(password_plain) is not str:
-            raise InvalidDataType
+            raise AuthExceptions.InvalidDataType(AuthExceptions.InvalidDataType.message)
         if len(email) > Auth.MAX_LENGTH:
-            raise EmailTooLong
+            raise AuthExceptions.EmailTooLong(AuthExceptions.EmailTooLong.message)
         if len(password_plain) > Auth.MAX_LENGTH:
-            raise PasswordTooLong
+            raise AuthExceptions.PasswordTooLong(AuthExceptions.PasswordTooLong.message)
 
         try:
             conn = sqlite3.connect(self.database_path)
@@ -50,13 +50,13 @@ class Auth:
 
         """
         if type(email) is not str or type(password_plain) is not str or type(password_confirm) is not str:
-            raise InvalidDataType
+            raise AuthExceptions.InvalidDataType(AuthExceptions.InvalidDataType.message)
         if len(password_plain) > Auth.MAX_LENGTH:
-            raise PasswordTooLong
+            raise AuthExceptions.PasswordTooLong(AuthExceptions.PasswordTooLong.message)
         if len(email) > Auth.MAX_LENGTH:
-            raise EmailTooLong
+            raise AuthExceptions.EmailTooLong(AuthExceptions.EmailTooLong.message)
         if password_confirm != password_plain:
-            raise PasswordConfirmationFailed
+            raise AuthExceptions.PasswordConfirmationFailed(AuthExceptions.PasswordConfirmationFailed.message)
 
         try:
             conn = sqlite3.connect(self.database_path)
@@ -87,11 +87,12 @@ class Auth:
             new_password_confirm: str => new password confirmation
         """
         if type(email) is not str or type(new_password_plain) is not str or type(new_password_confirm) is not str:
-            raise InvalidDataType
+            raise AuthExceptions.InvalidDataType(AuthExceptions.InvalidDataType.message)
         if len(new_password_plain) > 200:
-            raise PasswordTooLong
+            raise AuthExceptions.PasswordTooLong(AuthExceptions.PasswordTooLong.message)
         if new_password_plain != new_password_confirm:
-            raise PasswordConfirmationFailed
+            raise AuthExceptions.PasswordConfirmationFailed(AuthExceptions.PasswordConfirmationFailed.message)
+
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
