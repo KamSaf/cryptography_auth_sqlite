@@ -1,4 +1,5 @@
-from utils.utils import create_table, generate_salt, hash_password, check_hash
+from utils.utils import create_table, generate_salt, hash_password, check_hash, validate_data
+from utils.exception_types import InvalidDataType, ValueTooLong, ValueTooShort, PasswordConfirmationFailed
 import sqlite3
 import os
 import pytest
@@ -47,3 +48,64 @@ class TestUtils:
         TEST_SALT = 'Hh0kfc;UF5Z*ox%~JWu6&VOjw/2.J~Wt'
         TEST_PLAIN_TEXT = 'test_password'
         assert check_hash(password_hash=TEST_HASH, password_plain=TEST_PLAIN_TEXT, salt=TEST_SALT)
+
+    def test_data_validation(self):
+        TEST_EMAIL = 'test@email.com'
+        TEST_PASSWORD = 'test_password'
+        assert validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD) is True
+
+    def test_data_validation_with_pass_conf(self):
+        TEST_EMAIL = 'test@email.com'
+        TEST_PASSWORD = 'test_password'
+        assert validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD, password_confirm=TEST_PASSWORD) is True
+
+    def test_data_validation_wrong_pass_conf(self):
+        TEST_EMAIL = 'test@email.com'
+        TEST_PASSWORD = 'test_password'
+        TEST_PASSWORD_CONFIRM = 'wrong_password'
+        with pytest.raises(PasswordConfirmationFailed):
+            validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD, password_confirm=TEST_PASSWORD_CONFIRM)
+
+    def test_data_validation_wrong_email_type(self):
+        TEST_EMAIL = 123
+        TEST_PASSWORD = 'test_password'
+        with pytest.raises(InvalidDataType):
+            validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD, password_confirm=TEST_PASSWORD)
+
+    def test_data_validation_wrong_password_type(self):
+        TEST_EMAIL = 'test@email.com'
+        TEST_PASSWORD = 123
+        with pytest.raises(InvalidDataType):
+            validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD, password_confirm=TEST_PASSWORD)
+
+    def test_data_validation_wrong_password_conf_type(self):
+        TEST_EMAIL = 'test@email.com'
+        TEST_PASSWORD = 'test_password'
+        TEST_PASSWORD_CONFIRM = 123
+        with pytest.raises(InvalidDataType):
+            validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD, password_confirm=TEST_PASSWORD_CONFIRM)
+
+    def test_data_validation_email_too_long(self):
+        TEST_EMAIL = 'test_email@email.com' * 11
+        TEST_PASSWORD = 'test_password'
+        with pytest.raises(ValueTooLong):
+            validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD)
+
+    def test_data_validation_password_too_long(self):
+        TEST_EMAIL = 'test@email.com'
+        TEST_PASSWORD = "1234567890" * 21
+        with pytest.raises(ValueTooLong):
+            validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD)
+
+    def test_data_validation_pass_conf_too_long(self):
+        TEST_EMAIL = 'test@email.com'
+        TEST_PASSWORD = "1234567890"
+        TEST_PASSWORD_CONFIRM = TEST_PASSWORD * 21
+        with pytest.raises(ValueTooLong):
+            validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD, password_confirm=TEST_PASSWORD_CONFIRM)
+
+    def test_data_validation_password_too_short(self):
+        TEST_EMAIL = 'test@email.com'
+        TEST_PASSWORD = "pass"
+        with pytest.raises(ValueTooShort):
+            validate_data(email=TEST_EMAIL, password_plain=TEST_PASSWORD)

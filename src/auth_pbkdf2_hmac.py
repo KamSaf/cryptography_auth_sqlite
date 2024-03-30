@@ -1,15 +1,13 @@
 import sqlite3
-from utils.utils import create_table
+from utils.utils import create_table, validate_data
 from hashlib import pbkdf2_hmac
 from os import urandom
 import binascii
-import utils.exception_types as AuthExceptions
 
 
 class Auth:
     DEFAULT_DATABASE_PATH = "database.db"
     HASH_ITERATIONS = 500000
-    MAX_LENGTH = 200
 
     def __init__(self, database_path: str = DEFAULT_DATABASE_PATH):
         self.database_path = database_path
@@ -21,15 +19,9 @@ class Auth:
             Parameters:
             --------------------------------------------
             email: str => user email (max. 200 characters)
-            password_plain :str => user password (max. 200 characters)
+            password_plain :str => user password (8 - 200 characters long)
         """
-        if type(email) is not str or type(password_plain) is not str:
-            raise AuthExceptions.InvalidDataType(AuthExceptions.InvalidDataType.message)
-        if len(email) > Auth.MAX_LENGTH:
-            raise AuthExceptions.EmailTooLong(AuthExceptions.EmailTooLong.message)
-        if len(password_plain) > Auth.MAX_LENGTH:
-            raise AuthExceptions.PasswordTooLong(AuthExceptions.PasswordTooLong.message)
-
+        validate_data(email=email, password_plain=password_plain)
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
@@ -55,19 +47,11 @@ class Auth:
             Parameters:
             -----------------------------------------
             email: str => user email (max. 200 characters)
-            password_plain :str => user password (max. 200 characters)
-            password_confirm: str => user password confirmation (max. 200 characters)
+            password_plain :str => user password (8 - 200 characters long)
+            password_confirm: str => user password confirmation (max. 200 characters long)
 
         """
-        if type(email) is not str or type(password_plain) is not str or type(password_confirm) is not str:
-            raise AuthExceptions.InvalidDataType(AuthExceptions.InvalidDataType.message)
-        if len(password_plain) > Auth.MAX_LENGTH:
-            raise AuthExceptions.PasswordTooLong(AuthExceptions.PasswordTooLong.message)
-        if len(email) > Auth.MAX_LENGTH:
-            raise AuthExceptions.EmailTooLong(AuthExceptions.EmailTooLong.message)
-        if password_confirm != password_plain:
-            raise AuthExceptions.PasswordConfirmationFailed(AuthExceptions.PasswordConfirmationFailed.message)
-
+        validate_data(email=email, password_plain=password_plain, password_confirm=password_confirm)
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
@@ -92,7 +76,7 @@ class Auth:
         except Exception as e:
             raise e
 
-    def change_password(self, email: str, new_password_plain: str, new_password_confirm: str) -> None:
+    def change_password(self, email: str, password_plain: str, password_confirm: str) -> None:
         """
             Function for changing user password in the SQLite database and generating new salt
             using pbkdf2_hmac function and SHA256 algorithm
@@ -100,16 +84,10 @@ class Auth:
             Parameters:
             -----------------------------------------
             email: str => user email (max. 200 characters)
-            new_password_plain: str => new password to be saved to the database (max. 200 characters)
-            new_password_confirm: str => new password confirmation
+            password_plain: str => new password to be saved to the database (8 - 200 characters long)
+            password_confirm: str => new password confirmation (max. 200 characters long)
         """
-        if type(email) is not str or type(new_password_plain) is not str or type(new_password_confirm) is not str:
-            raise AuthExceptions.InvalidDataType(AuthExceptions.InvalidDataType.message)
-        if len(new_password_plain) > 200:
-            raise AuthExceptions.PasswordTooLong(AuthExceptions.PasswordTooLong.message)
-        if new_password_plain != new_password_confirm:
-            raise AuthExceptions.PasswordConfirmationFailed(AuthExceptions.PasswordConfirmationFailed.message)
-
+        validate_data(email=email, password_plain=password_plain, password_confirm=password_confirm)
         try:
             conn = sqlite3.connect(self.database_path)
             create_table(conn=conn)
@@ -117,7 +95,7 @@ class Auth:
             new_salt = binascii.hexlify(urandom(32))
             dk = pbkdf2_hmac(
                 hash_name='sha256',
-                password=new_password_plain.encode(),
+                password=password_plain.encode(),
                 salt=new_salt,
                 iterations=Auth.HASH_ITERATIONS
             )
@@ -133,6 +111,4 @@ class Auth:
 
 
 if __name__ == "__main__":
-    auth = Auth()
-    auth.save_user(email='user_06@domain.com', password_plain='test_password', password_confirm='test_password')
     pass

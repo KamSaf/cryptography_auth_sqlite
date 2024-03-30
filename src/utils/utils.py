@@ -1,6 +1,7 @@
 from sqlite3 import Connection
 import random
 import hashlib
+import utils.exception_types as AuthExceptions
 
 
 def create_table(conn: Connection) -> None:
@@ -63,6 +64,42 @@ def check_hash(password_hash: str, password_plain: str, salt: str) -> bool:
     h = hashlib.sha256()
     h.update((password_plain + salt).encode())
     return password_hash == h.hexdigest()
+
+
+def validate_data(email: str = '', password_plain: str = '', password_confirm: str = '') -> bool:
+    """
+        Function validating user data
+
+        Parameters:
+        --------------------------------------
+        email: str => user email
+        password_plain: str => plain text password
+        password_confirmation: str => (optional) confirmation for given password
+    """
+    MAX_LENGTH = 200
+    MIN_LENGTH = 8
+
+    if not (email and password_plain) or (type(email) is not str or type(password_plain) is not str):
+        raise AuthExceptions.InvalidDataType(AuthExceptions.InvalidDataType.message)
+
+    if len(email) > MAX_LENGTH:
+        raise AuthExceptions.ValueTooLong(AuthExceptions.ValueTooLong.message + 'email')
+
+    if len(password_plain) > MAX_LENGTH:
+        raise AuthExceptions.ValueTooLong(AuthExceptions.ValueTooLong.message + 'password')
+
+    if len(password_plain) < MIN_LENGTH:
+        raise AuthExceptions.ValueTooShort(AuthExceptions.ValueTooShort.message + 'password')
+
+    if password_confirm and type(password_confirm) is not str:
+        raise AuthExceptions.InvalidDataType(AuthExceptions.InvalidDataType.message + 'password_confirm')
+
+    if password_confirm and len(password_confirm) > 200:
+        raise AuthExceptions.ValueTooLong(AuthExceptions.ValueTooLong.message + 'password_confirm')       
+
+    if password_confirm and password_plain != password_confirm:
+        raise AuthExceptions.PasswordConfirmationFailed(AuthExceptions.PasswordConfirmationFailed.message)
+    return True
 
 
 if __name__ == "__main__":

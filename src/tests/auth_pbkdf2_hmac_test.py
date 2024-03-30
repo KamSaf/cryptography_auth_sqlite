@@ -108,7 +108,7 @@ class TestAuthPBKDF2:
         )
         connection.commit()
         auth = Auth(database_path=temporary_database_path)
-        auth.change_password(email=TEST_EMAIL, new_password_plain=TEST_NEW_PASSWORD, new_password_confirm=TEST_NEW_PASSWORD)
+        auth.change_password(email=TEST_EMAIL, password_plain=TEST_NEW_PASSWORD, password_confirm=TEST_NEW_PASSWORD)
         db_data = cursor.execute(
             "SELECT * FROM user WHERE email=:email", {'email': TEST_EMAIL}
         ).fetchone()
