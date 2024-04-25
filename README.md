@@ -33,7 +33,7 @@ Run command for installing requirements when in ```src/``` directory
 - pytest
 
 
-## To run unit tests
+## Testing
 
 While in src directory, run:
 
